@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MUJTABA Downloads - videos, MP3 &amp; pictures</title>
+<meta name="description" content="Paste a link from YouTube, Instagram, TikTok, Facebook, Pinterest, X and more. Download the video, MP3 or pictures. Free.">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0e1116">
+<link rel="icon" href="/favicon.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>
+:root{--bg:#0e1116;--card:#171b22;--card2:#1d222b;--line:#2a313c;--txt:#e8ecf2;--mut:#8b95a5;--acc:#7cf3a1;--acc2:#27c46b;--bad:#ff6b6b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.5 system-ui,Segoe UI,Roboto,Arial,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:28px 16px 70px}
+h1{font-size:30px;margin:0 0 4px}h1 span{color:var(--acc)}
+.sub{color:var(--mut);margin-bottom:22px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin:0 0 14px}
+.row{display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;margin-bottom:10px}
+.row label{color:var(--mut);font-size:13px}
+select,textarea{width:100%;background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px 10px;font:inherit}
+textarea{resize:vertical}
+.checks label{display:flex;gap:8px;align-items:center;font-size:14px;margin:6px 0 14px}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--acc2)}
+.btn{background:var(--acc2);color:#04140b;border:0;border-radius:10px;padding:13px 22px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+.btn:hover{background:var(--acc)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:8px 16px}
+.bar{height:12px;background:var(--card2);border-radius:99px;overflow:hidden;border:1px solid var(--line);margin-top:6px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc2),var(--acc));transition:width .4s}
+.hint{color:var(--mut);font-size:13px}
+.err{color:var(--bad);white-space:pre-wrap;margin-top:12px;font-size:14px}
+.hide{display:none}
+video,img,audio{width:100%;border-radius:10px;background:#000;max-height:320px}
+img{object-fit:contain}audio{background:none}
+.file{margin-bottom:18px}
+.foot{text-align:center;color:var(--mut);font-size:13px;margin-top:34px}.foot b{color:var(--acc);letter-spacing:.08em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>MUJTABA <span>Downloads</span></h1>
+  <div class="sub">Download videos, MP3 audio and pictures from a link. Free, no sign-up.</div>
+  <div class="grid">
+    <div>
+      <div class="card" style="margin-bottom:18px">
+        <h2>Paste your link</h2>
+        <textarea id="urls" rows="5" placeholder="Paste one or more links here (one per line)..."></textarea>
+        <div class="hint" style="margin:6px 0 14px">YouTube, Instagram, TikTok, Facebook, X (Twitter), Pinterest, Reddit, Vimeo, Pixiv, Imgur and many more. Up to <span id="maxu">5</span> links at a time.</div>
+        <div class="row"><label for="kind">Download</label>
+          <select id="kind"><option value="auto">Automatic (video or pictures)</option><option value="video">Video (MP4)</option><option value="audio">Audio only (MP3)</option><option value="image">Pictures only</option></select></div>
+        <div class="row"><label for="q">Video quality</label>
+          <select id="q"><option value="best">Best available</option><option value="1080">Up to 1080p</option><option value="720">Up to 720p</option><option value="480">Up to 480p</option><option value="360">Up to 360p</option></select></div>
+        <div class="checks"><label><input type="checkbox" id="pl"> Playlist / profile / album: download up to 20 items</label></div>
+        <button class="btn" id="go">Download</button>
+        <div id="prog" class="hide" style="margin-top:16px">
+          <div style="display:flex;justify-content:space-between"><b id="stage"></b><span id="pct"></span></div>
+          <div class="bar"><i id="barfill"></i></div>
+          <div id="msg" class="hint" style="margin-top:6px"></div>
+        </div>
+        <div id="err" class="err"></div>
+      </div>
+      <div class="card">
+        <h2>Please note</h2>
+        <div class="hint">Download only content you own or have permission to use, and respect copyright and each platform's terms. You are responsible for what you download. Private posts and DRM-protected videos cannot be downloaded. Your files are deleted from our server automatically after 30 minutes. We do not keep a copy.</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Your files</h2>
+      <div id="files" class="hint">Downloaded files will appear here.</div>
+      <div style="margin-top:6px"><a class="btn hide" id="zip">Download all as ZIP</a></div>
+    </div>
+  </div>
+  <div class="foot">MUJTABA Downloads &middot; Made by <b>MUJTABA</b></div>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+if('serviceWorker' in navigator && location.protocol !== 'file:'){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
+try{ const s = JSON.parse(localStorage.getItem('mdl') || '{}'); ['kind','q'].forEach(k => { if(s[k]) $('#'+k).value = s[k]; }); }catch(e){}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+$('#go').onclick = async () => {
+  const urls = $('#urls').value.split('\n').map(x => x.trim()).filter(Boolean);
+  const err = $('#err'); err.textContent = '';
+  if(!urls.length){ err.textContent = 'Paste at least one link first.'; return; }
+  try{ localStorage.setItem('mdl', JSON.stringify({kind: $('#kind').value, q: $('#q').value})); }catch(e){}
+  const btn = $('#go'); btn.disabled = true;
+  $('#prog').classList.remove('hide'); $('#stage').textContent = 'Starting...'; $('#pct').textContent = '';
+  $('#barfill').style.width = '0%'; $('#msg').textContent = '';
+  $('#zip').classList.add('hide'); $('#files').textContent = 'Working...';
+  const reset = () => { $('#files').textContent = 'Downloaded files will appear here.'; $('#prog').classList.add('hide'); };
+  try{
+    const r = await fetch('/api/start', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({urls, kind: $('#kind').value, quality: $('#q').value, playlist: $('#pl').checked})});
+    const j = await r.json().catch(() => ({}));
+    if(!r.ok || j.error){ err.textContent = j.error || 'Something went wrong. Please try again.'; reset(); return; }
+    let fails = 0;
+    for(;;){
+      await sleep(1500);
+      let s;
+      try{
+        const sr = await fetch('/api/status/' + j.id);
+        s = await sr.json();
+        if(!sr.ok){ err.textContent = s.error || 'Lost track of this download. Please try again.'; reset(); return; }
+        fails = 0;
+      }catch(e){ if(++fails > 20){ err.textContent = 'Connection lost. Please check your internet and try again.'; reset(); return; } continue; }
+      $('#stage').textContent = s.stage || ''; $('#pct').textContent = Math.round(s.progress || 0) + '%';
+      $('#barfill').style.width = (s.progress || 0) + '%'; $('#msg').textContent = s.message || '';
+      if(s.error){ err.textContent = s.error; $('#files').textContent = 'Nothing was downloaded.'; return; }
+      if(s.done){ render(s.files || [], s.zip_url); $('#barfill').style.width = '100%'; return; }
+    }
+  }catch(e){ err.textContent = 'Cannot reach the server. Please try again in a moment.'; reset(); }
+  finally{ btn.disabled = false; }
+};
+
+function render(files, zip){
+  const box = $('#files'); box.innerHTML = ''; box.className = '';
+  files.forEach(f => {
+    const d = document.createElement('div'); d.className = 'file';
+    let m;
+    if(f.kind === 'video'){ m = document.createElement('video'); m.controls = true; m.preload = 'metadata'; m.playsInline = true; }
+    else if(f.kind === 'audio'){ m = document.createElement('audio'); m.controls = true; }
+    else { m = document.createElement('img'); m.loading = 'lazy'; }
+    m.src = f.url; d.appendChild(m);
+    const t = document.createElement('div'); t.className = 'hint'; t.style.margin = '6px 0';
+    t.textContent = f.name + '  -  ' + (f.size / 1048576).toFixed(1) + ' MB'; d.appendChild(t);
+    const a = document.createElement('a'); a.className = 'btn sm'; a.textContent = 'Download';
+    a.href = f.url + '?dl=1'; d.appendChild(a); box.appendChild(d);
+  });
+  if(zip){ const z = $('#zip'); z.href = zip; z.classList.remove('hide'); }
+}
+</script>
+</body>
+</html>
